@@ -1,0 +1,7 @@
+{
+	"name": "web-data-grabber",
+	"main": "index.html",
+	"window": {
+		"id": "browser"
+	}
+}

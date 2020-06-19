@@ -1,0 +1,30 @@
+- xpath mit id und xpath mit hierarchie speichern. wenn IDxpath nicht funktioniert (z.b. id nicht gefunden), anderen xpath nehmen.
+- button für letzten schritt rückgängig machen
+- während script recorded wird url änderungen zulassen? wie verhält sich das bei repeat schritten?
+- repeat schritte beendbar? danach ein nicht wiederholender schritt möglich?
+- repeat option für mehrere Seiten mit next page buttons o.Ä.
+
+Schritte für Script recording:
+1. verbiete Click Propagation (initial bei start record)
+2. User klickt Element
+3. Speichere link, Schrittnummer (lokal)
+4. Dialog öffnet sich -> Browser gesperrt
+5. User wählt Aktion
+	- Klick: Speichere AktionsTyp:Klick, idXpath, hierarchieXpath,
+	- Store Value
+		a. User wählt zu speichernden Text aus
+		b. Speichere AktionsTyp:StoreValue, idXpath und hierarchieXpath zu allen gewählten Text-Elementen
+6. User wählt ob dieser Schritt für gleiche Elemente wiederholt werden soll
+		a. User wählt zu wiederholende Elemente aus -> rote umrandung im browser um alle gewählten kind elemente
+		c. Speichere repeat wahl, idXpath und hierarchieXpath zum eltern element und auswahlkriterium für kindelemente
+7a. User speichert Schritt
+	a. speichere Schritt global
+	b. falls klick Aktion
+		- Klick propagation erlauben
+		- klick emulieren
+		- warten bis Iframe geladen hat
+		- Meldung anzeigen: klick wurde durchgeführt, wenn sich der Dialog schließt kann mit dem nächsten Schritt fortgefahren werden
+		- Click Propagation verbieten
+7b. User drückt abbrechen: lokal gespeicherte Schritt Daten verwerfen
+8. Dialog ausblenden
+9. Dialog zurücksetzen
