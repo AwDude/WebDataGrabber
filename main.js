@@ -76,6 +76,10 @@ function abortStep() {
 	dialogOverlay.style.display = "none"; 
 }
 
+function saveStep() {
+	dialogOverlay.style.display = "none"; 
+}
+
 function isHttp(url) {
 	return /^https?:\/\//i.test(url);
 }
