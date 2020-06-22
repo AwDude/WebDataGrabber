@@ -9,6 +9,16 @@
 <body>
 	<div id="overlay">
 		<div id="dialog">
+			<div>
+				<input type="radio" id="click" name="action" value="click">
+				<label for="click">Click</label><br>
+				<input type="radio" id="grab" name="action" value="grab">
+				<label for="grab">Grab Text</label><br>
+			</div>
+			<div>
+				<input type="checkbox" id="multiple" name="multiple">
+				<label for="multiple">Repeat for similar elements</label>
+			</div>
 			<div id="dialog-button-container">
 				<button class="dialog-button" onclick="abortStep()">Abort</button>
 				<button class="dialog-button" onclick="saveStep()">Save</button>
@@ -19,7 +29,7 @@
 		<div id="grabber" class="box">
 			<h2 class="headline">Steps</h2>
 			<ol id="steps"> </ol>
-			<button id="save-btn" onclick="runGrabber()">Save</button>
+			<button id="record-btn" onclick="toggleRecord()">Record Steps</button>
 		</div>
 		<div id="dragbar"></div>
 		<div id="browser" class="box">

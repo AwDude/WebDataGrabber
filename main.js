@@ -3,7 +3,12 @@ var urlInput;
 var stepList;
 var webFrame;
 var webDoc;
-var preventClicks = true;
+var recordBtn;
+var steps = [];
+var currentStep;
+var doRecord = false;
+var preventClicks = false;
+
 const stepHtml = "	<h4 class='step-number'>1.</h4> \
 					<div class='step-info'> \
 						<span class='step-node'>listenelement</span> \
@@ -33,6 +38,7 @@ docReady(function() {
 	urlInput = document.getElementById("url");
 	stepList = document.getElementById("steps");
 	webFrame = document.getElementById("website");
+	recordBtn = document.getElementById("record-btn");
 	
 	if (isHttp(localStorage.lastUrl)) {
 		webFrame.src = localStorage.lastUrl;
@@ -74,10 +80,22 @@ function initDrag() {
 
 function abortStep() {
 	dialogOverlay.style.display = "none"; 
+	currentStep = null;
 }
 
 function saveStep() {
-	dialogOverlay.style.display = "none"; 
+	currentStep.action = document.querySelector('input[name="action"]:checked').value;
+	steps.push(currentStep);
+	if (currentStep.action === 'click') {
+		preventClicks = false;
+		getElement(currentStep.xpath).click();
+		// PREVENT CLICKS WHEN IFRAME LOADED AND HIDE DIALOG AFTERWARDS!
+		dialogOverlay.style.display = "none"; 
+	} else {
+		dialogOverlay.style.display = "none"; 
+	}
+	currentStep = null;
+	
 }
 
 function isHttp(url) {
@@ -92,12 +110,24 @@ function loadWebsite() {
 	webFrame.src = url;
 }
 
-function runGrabber() {
+function toggleRecord() {
+	if (doRecord) {
+		doRecord = false;
+		preventClicks = false;
+		recordBtn.textContent = "Record Steps";
+		steps = [];
+	} else {
+		doRecord = true;
+		preventClicks = true;
+		recordBtn.textContent = "Stop Recording";
+	}
+	/*
 	const path = stepList.getElementsByTagName("li")[0].innerHTML;
 	const element = getElement(path);
 	preventClicks = false;
 	element.click();
 	preventClicks = true;
+	*/
 }
 
 function onUrlEntered(event) {
@@ -120,7 +150,7 @@ function onElementClicked(event) {
 		event.preventDefault();
 		event.stopPropagation();
 	}
-	if (!event.isTrusted) { //ensure event originates from user click
+	if (!event.isTrusted || !doRecord) { //ensure event originates from user click
 		return;
 	}
 	/*
@@ -134,6 +164,11 @@ function onElementClicked(event) {
 	stepUrl.textContent = webFrame.contentWindow.location.href;
 	stepList.appendChild(step);
 	*/
+	currentStep = {
+		url: webFrame.contentWindow.location.href,
+		tag: event.target.tagName,
+		xpath: getXPath(event.target)
+	};
 	dialogOverlay.style.display = 'block';
 }
 
