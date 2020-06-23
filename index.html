@@ -10,7 +10,7 @@
 	<div id="overlay">
 		<div id="dialog">
 			<div>
-				<input type="radio" id="click" name="action" value="click">
+				<input type="radio" id="click" name="action" value="click" checked>
 				<label for="click">Click</label><br>
 				<input type="radio" id="grab" name="action" value="grab">
 				<label for="grab">Grab Text</label><br>
@@ -20,7 +20,7 @@
 				<label for="multiple">Repeat for similar elements</label>
 			</div>
 			<div id="dialog-button-container">
-				<button class="dialog-button" onclick="abortStep()">Abort</button>
+				<button class="dialog-button" onclick="dismissDialog()">Abort</button>
 				<button class="dialog-button" onclick="saveStep()">Save</button>
 			</div>
 		</div>
@@ -30,6 +30,7 @@
 			<h2 class="headline">Steps</h2>
 			<ol id="steps"> </ol>
 			<button id="record-btn" onclick="toggleRecord()">Record Steps</button>
+			<button id="run-btn" onclick="run()">Run</button>
 		</div>
 		<div id="dragbar"></div>
 		<div id="browser" class="box">

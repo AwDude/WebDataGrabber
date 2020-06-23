@@ -9,15 +9,11 @@ var currentStep;
 var doRecord = false;
 var preventClicks = false;
 
-const stepHtml = "	<h4 class='step-number'>1.</h4> \
+const stepHtml = "	<h4 class='step-number'></h4> \
 					<div class='step-info'> \
-						<span class='step-node'>listenelement</span> \
+						<span class='step-action-node'>listenelement</span> \
 						<span class='step-url'>link</span> \
-					</div> \
-					<select class='step-action'> \
-						<option value='click'>Click</option> \
-						<option value='click'>Save Value</option> \
-					</select>";
+					</div>";
 
 docReady(function() {
 	const win =	nw.Window.get();
@@ -78,24 +74,47 @@ function initDrag() {
 	});
 }
 
-function abortStep() {
-	dialogOverlay.style.display = "none"; 
-	currentStep = null;
+function run() {
+	if (steps.length == 0) {
+		return;
+	}
+	webFrame.src = steps[0].url;
+	steps.forEach(function(entry) {
+		console.log(entry);
+	});
+}
+
+function appendStep() {
+	const step = document.createElement('li');
+	step.className = "step";
+	step.innerHTML = stepHtml;
+	const stepNumber = step.getElementsByClassName("step-number")[0];
+	const stepActionNode = step.getElementsByClassName("step-action-node")[0];
+	const stepUrl = step.getElementsByClassName("step-url")[0];
+	stepNumber.innerHTML = steps.length;
+	stepActionNode.textContent = currentStep.action + " " + currentStep.tag;
+	stepUrl.textContent = currentStep.url;
+	stepList.appendChild(step);
 }
 
 function saveStep() {
 	currentStep.action = document.querySelector('input[name="action"]:checked').value;
 	steps.push(currentStep);
+	appendStep();
+	
 	if (currentStep.action === 'click') {
 		preventClicks = false;
 		getElement(currentStep.xpath).click();
 		// PREVENT CLICKS WHEN IFRAME LOADED AND HIDE DIALOG AFTERWARDS!
-		dialogOverlay.style.display = "none"; 
+		dismissDialog();
 	} else {
-		dialogOverlay.style.display = "none"; 
+		dismissDialog();
 	}
+}
+
+function dismissDialog() {
 	currentStep = null;
-	
+	dialogOverlay.style.display = "none";
 }
 
 function isHttp(url) {
@@ -114,20 +133,15 @@ function toggleRecord() {
 	if (doRecord) {
 		doRecord = false;
 		preventClicks = false;
+		// SAVE DIALOG
 		recordBtn.textContent = "Record Steps";
-		steps = [];
 	} else {
 		doRecord = true;
 		preventClicks = true;
+		stepList.innerHTML = "";
+		steps = [];
 		recordBtn.textContent = "Stop Recording";
 	}
-	/*
-	const path = stepList.getElementsByTagName("li")[0].innerHTML;
-	const element = getElement(path);
-	preventClicks = false;
-	element.click();
-	preventClicks = true;
-	*/
 }
 
 function onUrlEntered(event) {
@@ -150,20 +164,9 @@ function onElementClicked(event) {
 		event.preventDefault();
 		event.stopPropagation();
 	}
-	if (!event.isTrusted || !doRecord) { //ensure event originates from user click
+	if (!event.isTrusted /*ensure event originates from user click*/ || !doRecord) { 
 		return;
 	}
-	/*
-	const path = getXPath(event.target);
-	const step = document.createElement('li');
-	step.className = "step";
-	step.innerHTML = stepHtml;
-	const stepNode = step.getElementsByClassName("step-node")[0]; 
-	const stepUrl = step.getElementsByClassName("step-url")[0]; 
-	stepNode.textContent = event.target.tagName;
-	stepUrl.textContent = webFrame.contentWindow.location.href;
-	stepList.appendChild(step);
-	*/
 	currentStep = {
 		url: webFrame.contentWindow.location.href,
 		tag: event.target.tagName,
@@ -193,10 +196,10 @@ function getXPath(element) {
     }
 }
 
-function docReady(fn) {
+function docReady(func) {
     if (document.readyState === "complete" || document.readyState === "interactive") {
-        setTimeout(fn, 1); // call on next available tick
+        setTimeout(func, 1); // call on next available tick
     } else {
-        document.addEventListener("DOMContentLoaded", fn);
+        document.addEventListener("DOMContentLoaded", func);
     }
 }    

@@ -3,6 +3,7 @@
 - während script recorded wird url änderungen zulassen? wie verhält sich das bei repeat schritten?
 - repeat schritte beendbar? danach ein nicht wiederholender schritt möglich?
 - repeat option für mehrere Seiten mit next page buttons o.Ä.
+- mehrere dialoge statt einem großen
 
 Schritte für Script recording:
 1. verbiete Click Propagation (initial bei start record)

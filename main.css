@@ -80,14 +80,9 @@ select {
 	float: left;
 }
 
-.step-node {
+.step-action-node {
     display: block;
     clear: both;
-}
-
-.step-action {
-	padding: 1px 4px 1px 4px;
-	margin-left: 8px;
 }
 
 #overlay {
@@ -146,6 +141,11 @@ select {
     content: "";
     display: block;
     clear: both;
+}
+
+#run-btn {
+	padding: 4px;
+	margin-top: 8px;
 }
 
 #record-btn {
