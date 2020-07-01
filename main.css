@@ -46,37 +46,36 @@ select {
 	flex-direction: column;
 }
 
-.step {
-	margin-top: 2px;
-	padding: 6px;
-	border-radius: 8px;
-	border: 1px solid black;
-    background: #9db4b9;
-}
-
 .headline {
-	text-shadow: 2px 2px black;
 	color: #9db4b9;
 	text-align: center;
 	margin: 7px 0 5px 0;
 }
 
+.step {
+	margin-top: 2px;
+	padding: 6px;
+	border-radius: 6px;
+	border: 1px solid black;
+    background: #9db4b9;
+	display: flex;
+	flex-direction: row;
+}
+
 .step-number {
-	margin: 0 8px 0 4px;
-	float: left;
-	display: table-cell;
-    vertical-align: middle;
-	text-align: center;
-	height: 100%;
+	margin: 0 12px 0 4px;
+	align-self: center;
 }
 
 .step-info {
-	float: left;
+	overflow: hidden;
+	white-space: nowrap;
+	display: flex;
+	flex-direction: column;
 }
 
-.step-action-node {
-    display: block;
-    clear: both;
+.step-url {
+	font-size: 0.9em;
 }
 
 #overlay {
@@ -106,12 +105,6 @@ select {
 	margin: 0;
 	list-style-type: none;
 	flex-wrap: wrap;
-}
-
-#steps li::after {
-    content: "";
-    display: block;
-    clear: both;
 }
 
 #run-btn {

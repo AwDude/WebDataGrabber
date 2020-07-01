@@ -65,9 +65,13 @@ module.exports = function() {
 	}
 	
 	function showLoadingDialog() {
+		showInfoDialog("Loading...");
+	}
+	
+	function showInfoDialog(message) {
 		dialog.style.left = "50%";
 		dialog.style.top = "50%";
-		dialog.innerHTML = "<span style='margin: 4px;'>Loading...</span>";
+		dialog.innerHTML = "<span style='margin: 4px;'>" + message + "</span>";
 		showDialog();
 	}
 	
@@ -75,6 +79,7 @@ module.exports = function() {
 	return {
 		showSelectDialog: showSelectDialog,
 		showLoadingDialog: showLoadingDialog,
+		showInfoDialog: showInfoDialog,
 		hideDialog: hideDialog
 	};
 }

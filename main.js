@@ -5,16 +5,14 @@ var webFrame;
 var recordBtn;
 var recorder;
 
-const stepHtml = "	<h4 class='step-number'></h4> \
-					<div class='step-info'> \
-						<span class='step-action-node'>listenelement</span> \
-						<span class='step-url'>link</span> \
-					</div>";
-
 docReady(function() {
 	const win =	nw.Window.get();
 	win.showDevTools();
 	win.on('new-win-policy', function(frame, url, policy) {
+		policy.ignore();
+		webFrame.src = url;
+	});
+	win.on('navigation', function(frame, url, policy) {
 		policy.ignore();
 		webFrame.src = url;
 	});
@@ -73,20 +71,6 @@ function initDrag() {
 	});
 }
 
-function appendStep() {
-	// TODO
-	const step = document.createElement('li');
-	step.className = "step";
-	step.innerHTML = stepHtml;
-	const stepNumber = step.getElementsByClassName("step-number")[0];
-	const stepActionNode = step.getElementsByClassName("step-action-node")[0];
-	const stepUrl = step.getElementsByClassName("step-url")[0];
-	stepNumber.innerHTML = steps.length;
-	stepActionNode.textContent = currentStep.action + " " + currentStep.tag;
-	stepUrl.textContent = currentStep.url;
-	stepList.appendChild(step);
-}
-
 function isHttp(url) {
 	return /^https?:\/\//i.test(url);
 }
@@ -101,11 +85,9 @@ function loadWebsite() {
 
 function toggleRecord() {
 	if (recorder.isRecording()) {
-		// SAVE DIALOG
 		recorder.stop();
 		recordBtn.textContent = "Record Steps";
 	} else {
-		stepList.innerHTML = "";
 		recorder.start();
 		recordBtn.textContent = "Stop Recording";
 	}

@@ -1,5 +1,12 @@
 const dialog = require("modules/dialog")();
-
+const stepHtml = "	<div class='step'> \
+						<h3 class='step-number'></h3> \
+						<div class='step-info'> \
+							<span class='step-action'></span> \
+							<a class='step-url'></span> \
+						</div> \
+					</div>";
+					
 module.exports = function(iFrame, stepList) {
 	var iFrameDoc;
 	var steps = [];
@@ -55,7 +62,6 @@ module.exports = function(iFrame, stepList) {
 				emulateClick();
 				break;
 			case "Extract Text":
-				
 				break;
 			default:
 				currentStep = null;
@@ -63,9 +69,8 @@ module.exports = function(iFrame, stepList) {
 		}
 		currentStep.action = action;
 		steps.push(currentStep);
-		//appendStep();
-		//currentStep = null;
-		console.log(steps);
+		appendStep();
+		currentStep = null;
 	}
 	
 	function emulateClick() {
@@ -77,14 +82,28 @@ module.exports = function(iFrame, stepList) {
 		}
 	}
 	
+	function appendStep() {
+		const step = document.createElement('li');
+		step.innerHTML = stepHtml;
+		const stepNumber = step.getElementsByClassName("step-number")[0];
+		const stepActionNode = step.getElementsByClassName("step-action")[0];
+		const stepUrl = step.getElementsByClassName("step-url")[0];
+		stepNumber.innerHTML = steps.length;
+		stepActionNode.textContent = currentStep.action;
+		stepUrl.textContent = currentStep.url;
+		stepUrl.href = currentStep.url;
+		stepList.appendChild(step);
+	}
+	
 	function isRecording() {
 		return doRecord;
 	}
 	
 	function start() {
 		doRecord = true;
-		steps = [];
 		preventPropagation = true;
+		steps = [];
+		stepList.innerHTML = "";
 		if (iFrameDoc !== undefined) {
 			iFrameDoc.addEventListener("click", onClick, true);
 		}
@@ -106,6 +125,7 @@ module.exports = function(iFrame, stepList) {
 		if (steps.length == 0) {
 			return;
 		}
+		dialog.showInfoDialog("Executing Script...");
 	}
 	
 	init();
