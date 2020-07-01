@@ -7,24 +7,6 @@
 	<script type="text/javascript" src="main.js"></script>
 </head>
 <body>
-	<div id="overlay">
-		<div id="dialog">
-			<div>
-				<input type="radio" id="click" name="action" value="click" checked>
-				<label for="click">Click</label><br>
-				<input type="radio" id="grab" name="action" value="grab">
-				<label for="grab">Grab Text</label><br>
-			</div>
-			<div>
-				<input type="checkbox" id="multiple" name="multiple">
-				<label for="multiple">Repeat for similar elements</label>
-			</div>
-			<div id="dialog-button-container">
-				<button class="dialog-button" onclick="dismissDialog()">Abort</button>
-				<button class="dialog-button" onclick="saveStep()">Save</button>
-			</div>
-		</div>
-	</div>
 	<div id="container">
 		<div id="grabber" class="box">
 			<h2 class="headline">Steps</h2>
@@ -37,7 +19,7 @@
 			<div id="browser_head" class="header">
 				<input type="text" id="url" onkeypress="return onUrlEntered(event)">
 			</div>
-			<iframe id="website" nwdisable nwfaketop onload="onWebsiteLoaded()"></iframe>
+			<iframe id="website" onload="onWebsiteLoaded()" nwdisable nwfaketop></iframe>
 		</div>
 	</div>
 </body>

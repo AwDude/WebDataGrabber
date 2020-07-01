@@ -1,13 +1,9 @@
-var dialogOverlay;
+const locationObserver = new MutationObserver(onLocationChange);
 var urlInput;
 var stepList;
 var webFrame;
-var webDoc;
 var recordBtn;
-var steps = [];
-var currentStep;
-var doRecord = false;
-var preventClicks = false;
+var recorder;
 
 const stepHtml = "	<h4 class='step-number'></h4> \
 					<div class='step-info'> \
@@ -29,12 +25,15 @@ docReady(function() {
 		}
 		this.close(true);
 	});
+	// enable context object usage in modules
+	global.console = console;
+	global.doc = document;
 	
-	dialogOverlay = document.getElementById("overlay");
 	urlInput = document.getElementById("url");
 	stepList = document.getElementById("steps");
 	webFrame = document.getElementById("website");
 	recordBtn = document.getElementById("record-btn");
+	recorder = require("modules/recorder")(webFrame, stepList);
 	
 	if (isHttp(localStorage.lastUrl)) {
 		webFrame.src = localStorage.lastUrl;
@@ -74,17 +73,8 @@ function initDrag() {
 	});
 }
 
-function run() {
-	if (steps.length == 0) {
-		return;
-	}
-	webFrame.src = steps[0].url;
-	steps.forEach(function(entry) {
-		console.log(entry);
-	});
-}
-
 function appendStep() {
+	// TODO
 	const step = document.createElement('li');
 	step.className = "step";
 	step.innerHTML = stepHtml;
@@ -95,26 +85,6 @@ function appendStep() {
 	stepActionNode.textContent = currentStep.action + " " + currentStep.tag;
 	stepUrl.textContent = currentStep.url;
 	stepList.appendChild(step);
-}
-
-function saveStep() {
-	currentStep.action = document.querySelector('input[name="action"]:checked').value;
-	steps.push(currentStep);
-	appendStep();
-	
-	if (currentStep.action === 'click') {
-		preventClicks = false;
-		getElement(currentStep.xpath).click();
-		// PREVENT CLICKS WHEN IFRAME LOADED AND HIDE DIALOG AFTERWARDS!
-		dismissDialog();
-	} else {
-		dismissDialog();
-	}
-}
-
-function dismissDialog() {
-	currentStep = null;
-	dialogOverlay.style.display = "none";
 }
 
 function isHttp(url) {
@@ -130,16 +100,13 @@ function loadWebsite() {
 }
 
 function toggleRecord() {
-	if (doRecord) {
-		doRecord = false;
-		preventClicks = false;
+	if (recorder.isRecording()) {
 		// SAVE DIALOG
+		recorder.stop();
 		recordBtn.textContent = "Record Steps";
 	} else {
-		doRecord = true;
-		preventClicks = true;
 		stepList.innerHTML = "";
-		steps = [];
+		recorder.start();
 		recordBtn.textContent = "Stop Recording";
 	}
 }
@@ -152,48 +119,20 @@ function onUrlEntered(event) {
 }
 
 function onWebsiteLoaded() {
-	if (typeof(webFrame) !== 'undefined') { //'contentDocument' in webFrame || 'contentWindow' in webFrame) {
-		webDoc = webFrame.contentDocument || webFrame.contentWindow.document;
-		webDoc.addEventListener("click", onElementClicked, true);
+	if (webFrame !== undefined) {
 		urlInput.value = webFrame.contentWindow.location.href;
+		const config = {
+			childList: true,
+			subtree: true
+		}
+		const webDoc = webFrame.contentDocument || webFrame.contentWindow.document;
+		locationObserver.disconnect();
+		locationObserver.observe(webDoc, config);
     }
 }
 
-function onElementClicked(event) {
-	if (preventClicks) {
-		event.preventDefault();
-		event.stopPropagation();
-	}
-	if (!event.isTrusted /*ensure event originates from user click*/ || !doRecord) { 
-		return;
-	}
-	currentStep = {
-		url: webFrame.contentWindow.location.href,
-		tag: event.target.tagName,
-		xpath: getXPath(event.target)
-	};
-	dialogOverlay.style.display = 'block';
-}
-
-function getElement(xpath) {
-  return webDoc.evaluate(xpath, webDoc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-}
-
-function getXPath(element) {
-    if (element.id!=='')
-        return 'id("'+element.id+'")';
-    if (element===document.body)
-        return element.tagName;
-
-    var ix= 0;
-    var siblings= element.parentNode.childNodes;
-    for (var i= 0; i<siblings.length; i++) {
-        var sibling= siblings[i];
-        if (sibling===element)
-            return getXPath(element.parentNode)+'/'+element.tagName+'['+(ix+1)+']';
-        if (sibling.nodeType===1 && sibling.tagName===element.tagName)
-            ix++;
-    }
+function onLocationChange() {
+	urlInput.value = webFrame.contentWindow.location.href;
 }
 
 function docReady(func) {
