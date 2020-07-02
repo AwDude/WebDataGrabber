@@ -10,12 +10,15 @@ const stepHtml = "	<div class='step'> \
 					</div>";
 					
 module.exports = function(iFrame, stepList) {
+	
+	const xpath = require("modules/xpath")(iFrame);
 	var steps = [];
 	var currentStep;
 	var preventPropagation = false;
 	var doRecord = false;
-	var doRun = false;
-	var xpath = require("modules/xpath")(iFrame);
+	var doRun = false;		
+	var lastHoverElement;
+	var lastHoverElementBorder;
 	
 	function init() {
 		if (iFrame.doc !== undefined && iFrame.doc.readyState !== "loading") {
@@ -51,13 +54,13 @@ module.exports = function(iFrame, stepList) {
 		currentStep = {
 			url: iFrame.contentWindow.location.href,
 			tag: element.tagName,
-			idPath: xpath.getIdPath(iFrame.doc, element),
+			//idPath: xpath.getIdPath(iFrame.doc, element),
 			hierarchyPath: xpath.getHierarchyPath(element)
 		};
 		const rect = iFrame.getBoundingClientRect();
 		const mouseX = event.clientX + rect.left;
 		const mouseY = event.clientY + rect.top;
-		const options = ["Click", "Extract Text", "Cancel"];
+		const options = ["Click", "Extract text", "Repeat next steps on children", "Cancel"];
 		dialog.showSelectDialog(options, onActionSelected, mouseX, mouseY);
 	}
 	
@@ -72,7 +75,8 @@ module.exports = function(iFrame, stepList) {
 	function onActionSelected(action) {
 		switch (action) {
 			case "Click":
-				emulateClick(getElement(currentStep));
+				const element = xpath.getElement(currentStep.hierarchyPath);
+				emulateClick(element);
 				break;
 			case "Extract Text":
 				break;
@@ -84,10 +88,6 @@ module.exports = function(iFrame, stepList) {
 		steps.push(currentStep);
 		appendStep();
 		currentStep = null;
-	}
-	
-	function getElement(step) {
-		return xpath.getElement(step.idPath) || xpath.getElement(step.hierarchyPath);
 	}
 	
 	function emulateClick(element) {
@@ -116,6 +116,15 @@ module.exports = function(iFrame, stepList) {
 		return doRecord;
 	}
 	
+	function onHover(event) {
+		if (lastHoverElement !== undefined) {
+			lastHoverElement.style.border = lastHoverElementBorder;
+		}
+		lastHoverElement = event.target;
+		lastHoverElementBorder = lastHoverElement.style.border;
+		lastHoverElement.style.border = "2px solid red";
+	}
+	
 	function start() {
 		doRecord = true;
 		preventPropagation = true;
@@ -123,6 +132,7 @@ module.exports = function(iFrame, stepList) {
 		stepList.innerHTML = "";
 		if (iFrame.doc !== undefined) {
 			iFrame.doc.addEventListener("click", onClick, true);
+			iFrame.doc.body.addEventListener("mouseover", onHover);
 		}
 	}
 	
@@ -131,6 +141,10 @@ module.exports = function(iFrame, stepList) {
 		preventPropagation = false;
 		if (iFrame.doc !== undefined) {
 			iFrame.doc.removeEventListener("click", onClick, true);
+			iFrame.doc.body.removeEventListener("mouseover", onHover);
+			if (lastHoverElement !== undefined) {
+				lastHoverElement.style.border = lastHoverElementBorder;
+			}
 		}
 	}
 	
@@ -158,7 +172,7 @@ module.exports = function(iFrame, stepList) {
 			return;
 		}
 		const step = steps[stepNumber];
-		const element = getElement(step);
+		const element = xpath.getElement(step.hierarchyPath);
 		console.log("Step: " + stepNumber + ", Attempts: " + attempts + ", Element: " + element + ", Path: " + step.hierarchyPath);
 		if (element === null) {
 			setTimeout(function() { runStep(stepNumber, attempts + 1); }, runStepDelay);
@@ -170,7 +184,7 @@ module.exports = function(iFrame, stepList) {
 				setTimeout(function() { runStep(stepNumber + 1); }, runStepDelay);
 				break;
 			case "Extract Text":
-				console.log("Extract Text", element);
+				console.log("Extract Text: ", element.innerText);
 				runStep(stepNumber + 1);
 				break;
 			default:

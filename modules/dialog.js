@@ -5,12 +5,14 @@ const overlayStyle =   "position: absolute; \
 						bottom: 0; \
 						left: 0;"
 
-const dialogStyle =    "position: absolute; \
+const dialogStyle =    "position: fixed; \
 						border: 1px solid black; \
 						box-shadow: 4px 4px 8px black; \
 						background: white; \
 						-webkit-transform: translate(-50%, -50%); \
-						transform: translate(-50%, -50%);"
+						transform: translate(-50%, -50%); \
+						white-space: nowrap;"
+const dialogWindowMargin = 4;
 
 module.exports = function() {
 	
@@ -25,12 +27,41 @@ module.exports = function() {
 		overlay.appendChild(dialog);
 	}
 
-	function showDialog() {
+	function showDialog(x = null, y = null) {
+		dialog.style.left = "50%";
+		dialog.style.top = "50%";
 		if (!doc.body.contains(overlay)) {
 			doc.body.appendChild(overlay);
+		}		
+		if (x !== null && y !== null) {
+			setDialogPos(x, y);
 		}
 	}
-
+	
+	function setDialogPos(x, y) {
+		// set x
+		const xMin = (dialog.clientWidth / 2) + dialogWindowMargin;
+		const xMax = doc.body.clientWidth - (dialog.clientWidth / 2) - dialogWindowMargin;
+		if (x > xMax) {
+			dialog.style.left = xMax + "px";
+		} else if (x < xMin) {
+			dialog.style.left = xMin + "px";
+		} else {
+			dialog.style.left = x + "px";
+		}
+		
+		// set y
+		const yMin = (dialog.clientHeight / 2) + dialogWindowMargin;
+		const yMax = doc.body.clientHeight - (dialog.clientHeight / 2) - dialogWindowMargin;
+		if (y > yMax) {
+			dialog.style.top = yMax + "px";
+		} else if (y < yMin) {
+			dialog.style.top = yMin + "px";
+		} else {
+			dialog.style.top = y + "px";
+		}
+	}
+	
 	function hideDialog() {
 		doc.body.removeChild(overlay);
 	}
@@ -41,13 +72,6 @@ module.exports = function() {
 			return;
 		}
 		dialog.innerHTML = "";
-		if (x === null || y === null) {
-			dialog.style.left = "50%";
-			dialog.style.top = "50%";
-		} else {
-			dialog.style.left = x + "px";
-			dialog.style.top = y + "px";
-		}
 		optionsArr.forEach(function(option) {
 			const btn = doc.createElement("button");
 			btn.style.margin = "4px";
@@ -61,7 +85,9 @@ module.exports = function() {
 			};
 			dialog.appendChild(btn);  
 		});
-		showDialog();
+		showDialog(x, y);
+		//dialog.style.visibility = "hidden";
+		//dialog.style.visibility = "visible";
 	}
 	
 	function showLoadingDialog() {
@@ -69,8 +95,6 @@ module.exports = function() {
 	}
 	
 	function showInfoDialog(message) {
-		dialog.style.left = "50%";
-		dialog.style.top = "50%";
 		dialog.innerHTML = "<span style='margin: 4px;'>" + message + "</span>";
 		showDialog();
 	}
