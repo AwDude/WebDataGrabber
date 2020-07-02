@@ -1,9 +1,10 @@
-- xpath mit id und xpath mit hierarchie speichern. wenn IDxpath nicht funktioniert (z.b. id nicht gefunden), anderen xpath nehmen.
-- button für letzten schritt rückgängig machen
-- während script recorded wird url änderungen zulassen? wie verhält sich das bei repeat schritten?
+- button für letzten schritt rückgängig machen, Speichern
+- während script recorded wird url änderungen verbieten
 - repeat schritte beendbar? danach ein nicht wiederholender schritt möglich?
 - repeat option für mehrere Seiten mit next page buttons o.Ä.
-- mehrere dialoge statt einem großen
+- Browser Zoom
+- Fenster für Load / Run Script.
+- Scripte kürzen
 
 Schritte für Script recording:
 1. verbiete Click Propagation (initial bei start record)

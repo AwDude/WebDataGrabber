@@ -1,11 +1,11 @@
-module.exports = function(targetDoc) {
+module.exports = function(iFrame) {
 
 	function getIdPath(element) {
 		if (element.id !== '') {
 			return 'id("' + element.id + '")';
 		}
-		if (element === targetDoc.body) {
-			return element.tagName;
+		if (element === iFrame.doc.body) {
+			return "HTML/BODY";
 		}
 
 		var nodePos = 1;
@@ -23,8 +23,8 @@ module.exports = function(targetDoc) {
 	}
 	
 	function getHierarchyPath(element) {
-		if (element === targetDoc.body) {
-			return element.tagName;
+		if (element === iFrame.doc.body) {
+			return "HTML/BODY";
 		}
 
 		var nodePos = 1;
@@ -43,7 +43,7 @@ module.exports = function(targetDoc) {
 	
 	function getElement(xpath) {
 		try {
-			return targetDoc.evaluate(xpath, targetDoc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+			return iFrame.doc.evaluate(xpath, iFrame.doc, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 		} catch(error) { 
 			console.log(error);
 			return null;

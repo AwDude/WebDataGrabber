@@ -1,3 +1,5 @@
+const maxRunAttempts = 120;
+const runStepDelay = 500;
 const dialog = require("modules/dialog")();
 const stepHtml = "	<div class='step'> \
 						<h3 class='step-number'></h3> \
@@ -8,30 +10,32 @@ const stepHtml = "	<div class='step'> \
 					</div>";
 					
 module.exports = function(iFrame, stepList) {
-	var iFrameDoc;
 	var steps = [];
 	var currentStep;
 	var preventPropagation = false;
 	var doRecord = false;
-	var xpath;
+	var doRun = false;
+	var xpath = require("modules/xpath")(iFrame);
 	
 	function init() {
-		iFrameDoc = iFrame.contentDocument || iFrame.contentWindow.document;
-		if (iFrameDoc !== undefined && iFrameDoc.readyState !== "loading") {
-			xpath = require("modules/xpath")(iFrameDoc);
+		if (iFrame.doc !== undefined && iFrame.doc.readyState !== "loading") {
 			iFrame.contentWindow.addEventListener('beforeunload', dialog.showLoadingDialog, true);
 		}
 		iFrame.addEventListener('load', onLoaded, true);
 	}
 	
 	function onLoaded() {
-		iFrameDoc = iFrame.contentDocument || iFrame.contentWindow.document;
-		xpath = require("modules/xpath")(iFrameDoc);
 		if (doRecord) {
-			iFrameDoc.addEventListener("click", onClick, true);
+			iFrame.doc.addEventListener("click", onClick, true);
 		}
 		iFrame.contentWindow.addEventListener('beforeunload', dialog.showLoadingDialog, true);
 		dialog.hideDialog();
+		if (doRun) {
+			dialog.showInfoDialog("Executing Script...");
+			preventPropagation = false;
+			doRun = false;
+			runStep(0);
+		}
 	}
 	
 	function onClick(event) {
@@ -43,11 +47,12 @@ module.exports = function(iFrame, stepList) {
 		if (!event.isTrusted) { 
 			return;
 		}
+		const element = getFirstHtmlElement(event.target);
 		currentStep = {
 			url: iFrame.contentWindow.location.href,
-			tag: event.target.tagName,
-			idPath: xpath.getIdPath(event.target),
-			hierarchyPath: xpath.getHierarchyPath(event.target)
+			tag: element.tagName,
+			idPath: xpath.getIdPath(iFrame.doc, element),
+			hierarchyPath: xpath.getHierarchyPath(element)
 		};
 		const rect = iFrame.getBoundingClientRect();
 		const mouseX = event.clientX + rect.left;
@@ -56,10 +61,18 @@ module.exports = function(iFrame, stepList) {
 		dialog.showSelectDialog(options, onActionSelected, mouseX, mouseY);
 	}
 	
+	function getFirstHtmlElement(element) {
+		if (element instanceof iFrame.contentWindow.HTMLElement) {
+			return element;
+		} else {
+			return getFirstHtmlElement(element.parentNode);
+		}
+	}
+	
 	function onActionSelected(action) {
 		switch (action) {
 			case "Click":
-				emulateClick();
+				emulateClick(getElement(currentStep));
 				break;
 			case "Extract Text":
 				break;
@@ -73,11 +86,15 @@ module.exports = function(iFrame, stepList) {
 		currentStep = null;
 	}
 	
-	function emulateClick() {
-		const element = xpath.getElement(currentStep.idPath) || xpath.getElement(currentStep.hierarchyPath);
+	function getElement(step) {
+		return xpath.getElement(step.idPath) || xpath.getElement(step.hierarchyPath);
+	}
+	
+	function emulateClick(element) {
 		if (element !== null) {
 			preventPropagation = false;
-			element.click();
+			const event = new Event('click', {"bubbles": true, "cancelable": false});
+			element.dispatchEvent(event);
 			preventPropagation = true;
 		}
 	}
@@ -104,16 +121,16 @@ module.exports = function(iFrame, stepList) {
 		preventPropagation = true;
 		steps = [];
 		stepList.innerHTML = "";
-		if (iFrameDoc !== undefined) {
-			iFrameDoc.addEventListener("click", onClick, true);
+		if (iFrame.doc !== undefined) {
+			iFrame.doc.addEventListener("click", onClick, true);
 		}
 	}
 	
 	function stop() {
 		doRecord = false;
 		preventPropagation = false;
-		if (iFrameDoc !== undefined) {
-			iFrameDoc.removeEventListener("click", onClick, true);
+		if (iFrame.doc !== undefined) {
+			iFrame.doc.removeEventListener("click", onClick, true);
 		}
 	}
 	
@@ -125,7 +142,41 @@ module.exports = function(iFrame, stepList) {
 		if (steps.length == 0) {
 			return;
 		}
-		dialog.showInfoDialog("Executing Script...");
+		doRun = true;
+		iFrame.src = steps[0].url;
+	}
+	
+	function runStep(stepNumber, attempts = 0) {
+		if (stepNumber >= steps.length || attempts >= maxRunAttempts) {
+			if (stepNumber === steps.length) {
+				console.log("Finished run successfully!");
+			}
+			if (doRecord) {
+				preventPropagation = true;
+			}
+			dialog.hideDialog();
+			return;
+		}
+		const step = steps[stepNumber];
+		const element = getElement(step);
+		console.log("Step: " + stepNumber + ", Attempts: " + attempts + ", Element: " + element + ", Path: " + step.hierarchyPath);
+		if (element === null) {
+			setTimeout(function() { runStep(stepNumber, attempts + 1); }, runStepDelay);
+			return;
+		}
+		switch (step.action) {
+			case "Click":
+				emulateClick(element);
+				setTimeout(function() { runStep(stepNumber + 1); }, runStepDelay);
+				break;
+			case "Extract Text":
+				console.log("Extract Text", element);
+				runStep(stepNumber + 1);
+				break;
+			default:
+				console.log("Run aborted: Invalid Step Action!");
+				return;
+		}
 	}
 	
 	init();

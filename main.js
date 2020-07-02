@@ -1,7 +1,7 @@
 const locationObserver = new MutationObserver(onLocationChange);
 var urlInput;
 var stepList;
-var webFrame;
+var iFrame;
 var recordBtn;
 var recorder;
 
@@ -10,11 +10,11 @@ docReady(function() {
 	win.showDevTools();
 	win.on('new-win-policy', function(frame, url, policy) {
 		policy.ignore();
-		webFrame.src = url;
+		iFrame.src = url;
 	});
 	win.on('navigation', function(frame, url, policy) {
 		policy.ignore();
-		webFrame.src = url;
+		iFrame.src = url;
 	});
 	win.on('close', function () {
 		this.hide();
@@ -23,18 +23,22 @@ docReady(function() {
 		}
 		this.close(true);
 	});
+	
 	// enable context object usage in modules
 	global.console = console;
 	global.doc = document;
 	
 	urlInput = document.getElementById("url");
 	stepList = document.getElementById("steps");
-	webFrame = document.getElementById("website");
 	recordBtn = document.getElementById("record-btn");
-	recorder = require("modules/recorder")(webFrame, stepList);
+	iFrame = document.getElementById("website");
+	Object.defineProperty(iFrame, "doc", {
+		get: function() { return this.contentDocument || this.contentWindow.document; }
+	});
+	recorder = require("modules/recorder")(iFrame, stepList);
 	
 	if (isHttp(localStorage.lastUrl)) {
-		webFrame.src = localStorage.lastUrl;
+		iFrame.src = localStorage.lastUrl;
 	}
 	
 	initDrag();
@@ -47,8 +51,8 @@ function initDrag() {
 	var doDrag = false;
 	
 	document.addEventListener('mousedown', function(event) {
-		webFrame.style.pointerEvents = "none";
-		webFrame.style.userSelect = "none";
+		iFrame.style.pointerEvents = "none";
+		iFrame.style.userSelect = "none";
 		document.body.style.userSelect = "none";
 		if (event.target === dragBar) {
 			doDrag = true;
@@ -64,8 +68,8 @@ function initDrag() {
 		grabber.style.flexGrow = 0;
 	});
 	document.addEventListener('mouseup', function(event) {
-		webFrame.style.pointerEvents = "auto";
-		webFrame.style.userSelect = "auto";
+		iFrame.style.pointerEvents = "auto";
+		iFrame.style.userSelect = "auto";
 		document.body.style.userSelect = "auto";
 		doDrag = false;
 	});
@@ -80,7 +84,7 @@ function loadWebsite() {
 	if (!isHttp(url)) {
 		url = 'https://' + url;
 	}
-	webFrame.src = url;
+	iFrame.src = url;
 }
 
 function toggleRecord() {
@@ -101,20 +105,22 @@ function onUrlEntered(event) {
 }
 
 function onWebsiteLoaded() {
-	if (webFrame !== undefined) {
-		urlInput.value = webFrame.contentWindow.location.href;
+	if (iFrame !== undefined) {
+		// disable iframe console output
+		const webConsole = iFrame.contentWindow.console;
+		webConsole.warn = webConsole.log = webConsole.error = () => {};
+		urlInput.value = iFrame.contentWindow.location.href;
 		const config = {
 			childList: true,
 			subtree: true
 		}
-		const webDoc = webFrame.contentDocument || webFrame.contentWindow.document;
 		locationObserver.disconnect();
-		locationObserver.observe(webDoc, config);
+		locationObserver.observe(iFrame.doc, config);
     }
 }
 
 function onLocationChange() {
-	urlInput.value = webFrame.contentWindow.location.href;
+	urlInput.value = iFrame.contentWindow.location.href;
 }
 
 function docReady(func) {
