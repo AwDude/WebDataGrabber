@@ -1,5 +1,6 @@
 const maxRunAttempts = 120;
 const runStepDelay = 500;
+const repeatIndent = 20;
 const dialog = require("modules/dialog")();
 const stepHtml = "	<div class='step'> \
 						<h3 class='step-number'></h3> \
@@ -19,6 +20,7 @@ module.exports = function(iFrame, stepList) {
 	var doRun = false;		
 	var lastHoverElement;
 	var lastHoverElementBorder;
+	var repeatCount = 0;
 	
 	function init() {
 		if (iFrame.doc !== undefined && iFrame.doc.readyState !== "loading") {
@@ -60,8 +62,9 @@ module.exports = function(iFrame, stepList) {
 		const rect = iFrame.getBoundingClientRect();
 		const mouseX = event.clientX + rect.left;
 		const mouseY = event.clientY + rect.top;
-		const options = ["Click", "Extract text", "Repeat next steps on children", "Cancel"];
-		dialog.showSelectDialog(options, onActionSelected, mouseX, mouseY);
+		const options = ["Click", "Extract Text", "Repeat Next Steps", "Cancel"];
+		const message = "Select Action";
+		dialog.showSelectDialog(message, options, onActionSelected, mouseX, mouseY);
 	}
 	
 	function getFirstHtmlElement(element) {
@@ -80,6 +83,9 @@ module.exports = function(iFrame, stepList) {
 				break;
 			case "Extract Text":
 				break;
+			case "Repeat Next Steps":
+				
+				break;
 			default:
 				currentStep = null;
 				return;
@@ -88,6 +94,9 @@ module.exports = function(iFrame, stepList) {
 		steps.push(currentStep);
 		appendStep();
 		currentStep = null;
+		if (action === "Repeat Next Steps") {
+			repeatCount++;
+		}
 	}
 	
 	function emulateClick(element) {
@@ -101,6 +110,7 @@ module.exports = function(iFrame, stepList) {
 	
 	function appendStep() {
 		const step = document.createElement('li');
+		step.style.paddingLeft = (repeatCount * repeatIndent) + "px";
 		step.innerHTML = stepHtml;
 		const stepNumber = step.getElementsByClassName("step-number")[0];
 		const stepActionNode = step.getElementsByClassName("step-action")[0];
@@ -139,6 +149,7 @@ module.exports = function(iFrame, stepList) {
 	function stop() {
 		doRecord = false;
 		preventPropagation = false;
+		repeatCount = 0;
 		if (iFrame.doc !== undefined) {
 			iFrame.doc.removeEventListener("click", onClick, true);
 			iFrame.doc.body.removeEventListener("mouseover", onHover);
@@ -187,7 +198,14 @@ module.exports = function(iFrame, stepList) {
 				console.log("Extract Text: ", element.innerText);
 				runStep(stepNumber + 1);
 				break;
+			case "Repeat Next Steps":
+				// foreach li 
+				break;
 			default:
+				if (doRecord) {
+					preventPropagation = true;
+				}
+				dialog.hideDialog();
 				console.log("Run aborted: Invalid Step Action!");
 				return;
 		}

@@ -11,7 +11,8 @@ const dialogStyle =    "position: fixed; \
 						background: white; \
 						-webkit-transform: translate(-50%, -50%); \
 						transform: translate(-50%, -50%); \
-						white-space: nowrap;"
+						white-space: nowrap; \
+						text-align: center;"
 const dialogWindowMargin = 4;
 
 module.exports = function() {
@@ -66,12 +67,12 @@ module.exports = function() {
 		doc.body.removeChild(overlay);
 	}
 	
-	function showSelectDialog(optionsArr, onSelectFunc, x = null, y = null) {
+	function showSelectDialog(message, optionsArr, onSelectFunc, x = null, y = null) {
 		if (!Array.isArray(optionsArr) || optionsArr.length <= 0) {
 			console.log("showSelectDialog: something seems to be wrong with the optionsArr param");
 			return;
 		}
-		dialog.innerHTML = "";
+		dialog.innerHTML = "<span>" + message + "</span>";
 		optionsArr.forEach(function(option) {
 			const btn = doc.createElement("button");
 			btn.style.margin = "4px";
@@ -86,8 +87,6 @@ module.exports = function() {
 			dialog.appendChild(btn);  
 		});
 		showDialog(x, y);
-		//dialog.style.visibility = "hidden";
-		//dialog.style.visibility = "visible";
 	}
 	
 	function showLoadingDialog() {
