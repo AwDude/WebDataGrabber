@@ -18,6 +18,7 @@ module.exports = function(iFrame) {
 			}
 			if (sibling.nodeType === Node.ELEMENT_NODE && sibling.tagName === element.tagName) {
 				nodePos++;
+				console.log(nodePos, sibling);
 			}
 		}
 		return null;

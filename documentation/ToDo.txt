@@ -6,27 +6,13 @@
 - Fenster für Load / Run Script.
 - Scripte kürzen
 
-Schritte für Script recording:
-1. verbiete Click Propagation (initial bei start record)
-2. User klickt Element
-3. Speichere link, Schrittnummer (lokal)
-4. Dialog öffnet sich -> Browser gesperrt
-5. User wählt Aktion
-	- Klick: Speichere AktionsTyp:Klick, idXpath, hierarchieXpath,
-	- Store Value
-		a. User wählt zu speichernden Text aus
-		b. Speichere AktionsTyp:StoreValue, idXpath und hierarchieXpath zu allen gewählten Text-Elementen
-6. User wählt ob dieser Schritt für gleiche Elemente wiederholt werden soll
-		a. User wählt zu wiederholende Elemente aus -> rote umrandung im browser um alle gewählten kind elemente
-		c. Speichere repeat wahl, idXpath und hierarchieXpath zum eltern element und auswahlkriterium für kindelemente
-7a. User speichert Schritt
-	a. speichere Schritt global
-	b. falls klick Aktion
-		- Klick propagation erlauben
-		- klick emulieren
-		- warten bis Iframe geladen hat
-		- Meldung anzeigen: klick wurde durchgeführt, wenn sich der Dialog schließt kann mit dem nächsten Schritt fortgefahren werden
-		- Click Propagation verbieten
-7b. User drückt abbrechen: lokal gespeicherte Schritt Daten verwerfen
-8. Dialog ausblenden
-9. Dialog zurücksetzen
+Steplist:
+	- Aufnahme: Wenn Link von vorhergehendem Step gleich ist, kein Link speichern
+	- Abspielen: Wenn Link vorhanden, Link öffnen und warten
+	- Steplist rekursiv benutzen
+	
+StepList {
+	parent: null,
+	steps: [],
+	
+}
