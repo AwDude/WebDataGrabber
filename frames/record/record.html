@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<title>Web Data Grabber</title>
+	<link rel="stylesheet" href="record.css">
+	<script type="text/javascript" src="record.js"></script>
+</head>
+<body>
+	<div id="drag_container">
+		<div id="script_container" class="resizeable">
+			<h2 class="headline">Steps</h2>
+			<ol id="step_list"> </ol>
+			<button id="record_btn" onclick="toggleRecord()">Record Steps</button>
+			<button id="run_btn" onclick="Recorder.run()">Run</button>
+		</div>
+		<div id="dragbar"></div>
+		<div id="browser" class="resizeable">
+			<div id="url_container" class="header">
+				<input type="text" id="url_input" onkeypress="return onUrlEntered(event)">
+			</div>
+			<iframe id="iframe" onload="onWebsiteLoaded()" nwfaketop nwdisable></iframe>
+		</div>
+	</div>
+</body>
+</html>

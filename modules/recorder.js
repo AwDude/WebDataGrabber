@@ -4,10 +4,10 @@ const repeatIndent = 20;
 const Script = require("modules/script");
 const Dialog = require("modules/dialog")();
 const stepHtml = "	<div class='step'> \
-						<h3 class='step-number'></h3> \
-						<div class='step-info'> \
-							<span class='step-action'></span> \
-							<a class='step-url'></span> \
+						<h3 class='step_number'></h3> \
+						<div class='step_info'> \
+							<span class='step_action'></span> \
+							<a class='step_url'></span> \
 						</div> \
 					</div>";
 					

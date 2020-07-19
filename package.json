@@ -1,7 +1,12 @@
 {
 	"name": "web-data-grabber",
-	"main": "index.html",
+	"main": "frames/record/record.html",
 	"window": {
-		"id": "browser"
+		"id": "record"
+	},
+	"webkit": {
+		"page-cache": true,
+		"plugin": true,
+		"java": true
 	}
 }

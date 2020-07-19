@@ -10,7 +10,7 @@ module.exports.load = function(iFrame, stepList) {
 
 module.exports.create = function(iFrame, stepList) {
 	
-	const XPath = require("modules/xpath")(iFrame);
+	const XPath = require("modules/xpath");
 	var firstStep = null;
 	var currentStep = null;
 	var nestingCount = 0;

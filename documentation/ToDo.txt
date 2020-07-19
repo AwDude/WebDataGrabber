@@ -5,14 +5,51 @@
 - Browser Zoom
 - Fenster für Load / Run Script.
 - Scripte kürzen
+- repeat step: nur child elemente auswählbar machen
+- make cache clearable with nw.App.clearCache() (maybe reloadIgnoringCache() needed?)
+- APL emulate click not working
 
-Steplist:
-	- Aufnahme: Wenn Link von vorhergehendem Step gleich ist, kein Link speichern
-	- Abspielen: Wenn Link vorhanden, Link öffnen und warten
-	- Steplist rekursiv benutzen
+Script Datenstruktur:
+	- ersten link speichern
 	
-StepList {
-	parent: null,
-	steps: [],
+Step Datenstruktur:
+	- element resolve data
+	- next step
+	- parent step
+	- child steps
+
+Script ausführen:
+	1. ersten link öffnen
+	2. Step ausführen
+		
+Repeat Step ausführen:
+	1. aktuellen link speichern, falls (parent == null || !iFrame.doc.body.contains(parentElement))
+	2. aktuelles childElement speichern, initial 0
+
+Resolver:
 	
-}
+Zu lösen:
+	- element auf der selben seite? 
+		-> check if current body contains parent
+	- find element: parentElement auf selber seite -> findElement relativ zu parentElement
+	- mehrere Element auf einmal finden mit höchster Übereinstimmung
+	- steps gruppieren nach samesite / different site
+		-> pushstate / popstate and hashchange fallback. maybe observer as additional fallback
+	
+Module:
+	- Dragbar
+	- Dialog
+	- Recorder
+	- Resolver
+	- XPath
+	- Script
+	- Step
+	
+Ziel:
+	- jedes step element wiederfinden
+	- alle elemente auf einer Seite auf einmal wiederfinden
+	
+Lösung:
+	- nach jedem Click testen ob das clicked element wiedergefunden werden kann mit hierarchypath
+	- nein -> step in neue stepGroup
+	- ja -> step in bestehende stepgroup
