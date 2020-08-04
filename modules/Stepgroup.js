@@ -4,6 +4,7 @@ module.exports.create = function(url, parentGroup) {
 	
 	var temp;
 	var steps;
+	var group;
 
 	function run(iFrame) {
 		temp.iFrame = iFrame;
