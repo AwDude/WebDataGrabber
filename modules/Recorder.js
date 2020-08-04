@@ -1,49 +1,29 @@
-const maxRunAttempts = 120;
-const runStepDelay = 500;
-const repeatIndent = 20;
 const Script = require("modules/script");
 const Dialog = require("modules/dialog")();
-const stepHtml = "	<div class='step'> \
-						<h3 class='step_number'></h3> \
-						<div class='step_info'> \
-							<span class='step_action'></span> \
-							<a class='step_url'></span> \
-						</div> \
-					</div>";
 					
-module.exports = function(iFrame, stepList) {
+module.exports = function(Browser, stepList) {
 	
 	var currentScript = null;
 	var clickedElement = null;
-	var preventPropagation = false;
+	var preventClick = false;
 	var doRecord = false;
-	var doRun = false;		
 	var lastHoverElement;
 	var lastHoverElementBorder;
 	
 	function init() {
-		if (iFrame.doc !== undefined && iFrame.doc.readyState !== "loading") {
-			iFrame.contentWindow.addEventListener('beforeunload', Dialog.showLoadingDialog, true);
-		}
-		iFrame.addEventListener('load', onLoaded, true);
+		Browser.onLoad(onLoaded);
 	}
 	
 	function onLoaded() {
 		if (doRecord) {
-			iFrame.doc.addEventListener("click", onClick, true);
+			Browser.document.addEventListener("click", onClick, true);
 		}
-		iFrame.contentWindow.addEventListener('beforeunload', Dialog.showLoadingDialog, true);
+		Browser.window.addEventListener('beforeunload', Dialog.showLoadingDialog, true);
 		Dialog.hideDialog();
-		if (doRun) {
-			Dialog.showInfoDialog("Executing Script...");
-			preventPropagation = false;
-			doRun = false;
-			currentScript.run(onRunFinished);
-		}
 	}
 	
 	function onClick(event) {
-		if (preventPropagation) {
+		if (preventClick) {
 			event.preventDefault();
 			event.stopPropagation();
 		}
@@ -52,7 +32,7 @@ module.exports = function(iFrame, stepList) {
 			return;
 		}
 		clickedElement = event.target;
-		const rect = iFrame.getBoundingClientRect();
+		const rect = Browser.boundingRect;
 		const mouseX = event.clientX + rect.left;
 		const mouseY = event.clientY + rect.top;
 		const options = ["Click", "Extract Text", "Repeat Next Steps", "Cancel"];
@@ -66,10 +46,12 @@ module.exports = function(iFrame, stepList) {
 			return;
 		}
 		if (action === "Click") {
-			preventPropagation = false;
+			preventClick = false;
+			Browser.preventNavigation = false;
 		}
 		currentScript.addStep(clickedElement, action);
-		preventPropagation = true;
+		preventClick = true;
+		Browser.preventNavigation = true;
 	}
 	
 	function onHover(event) {
@@ -80,13 +62,6 @@ module.exports = function(iFrame, stepList) {
 		lastHoverElementBorder = lastHoverElement.style.border;
 		lastHoverElement.style.border = "2px solid red";
 	}
-
-	function onRunFinished() {
-		if (doRecord) {
-			preventPropagation = true;
-		}
-		Dialog.hideDialog();
-	}
 	
 	function isRecording() {
 		return doRecord;
@@ -94,21 +69,23 @@ module.exports = function(iFrame, stepList) {
 	
 	function start() {
 		doRecord = true;
-		preventPropagation = true;
-		currentScript = Script.create(iFrame, stepList);
+		preventClick = true;
+		Browser.preventNavigation = true;
+		//currentScript = Script.create(iFrame, stepList);
 		stepList.innerHTML = "";
-		if (iFrame.doc !== undefined) {
-			iFrame.doc.addEventListener("click", onClick, true);
-			iFrame.doc.body.addEventListener("mouseover", onHover);
+		if (Browser.document !== undefined) {
+			Browser.document.addEventListener("click", onClick, true);
+			Browser.document.body.addEventListener("mouseover", onHover);
 		}
 	}
 	
 	function stop() {
 		doRecord = false;
-		preventPropagation = false;
-		if (iFrame.doc !== undefined) {
-			iFrame.doc.removeEventListener("click", onClick, true);
-			iFrame.doc.body.removeEventListener("mouseover", onHover);
+		preventClick = false;
+		Browser.preventNavigation = false;
+		if (Browser.document !== undefined) {
+			Browser.document.removeEventListener("click", onClick, true);
+			Browser.document.body.removeEventListener("mouseover", onHover);
 			if (lastHoverElement !== undefined) {
 				lastHoverElement.style.border = lastHoverElementBorder;
 			}
@@ -119,19 +96,11 @@ module.exports = function(iFrame, stepList) {
 		//nw.__dirname
 	}
 	
-	function run() {
-		if (currentScript !== null) {
-			doRun = true;
-			iFrame.src = currentScript.getStartUrl();
-		}
-	}
-	
 	init();
 	return {
 		isRecording: isRecording,
 		start: start,
 		stop: stop,
-		save: save,
-		run: run
+		save: save
 	};
 }

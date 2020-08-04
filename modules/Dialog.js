@@ -64,7 +64,9 @@ module.exports = function() {
 	}
 	
 	function hideDialog() {
-		doc.body.removeChild(overlay);
+		if (doc.body.contains(overlay)) {
+			doc.body.removeChild(overlay);
+		}
 	}
 	
 	function showSelectDialog(message, optionsArr, onSelectFunc, x = null, y = null) {

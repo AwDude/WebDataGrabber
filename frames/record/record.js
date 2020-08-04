@@ -10,19 +10,18 @@ function onDocReady() {
 	
 	require("modules/Dragbar")(script_container, 8, dragbar, iframe);
 	Browser = require("modules/Browser")(iframe, url_input);
-	//Recorder = require("modules/recorder")(iframe, step_list);
+	Recorder = require("modules/Recorder")(Browser, step_list);
 
 }
 
 function toggleRecord() {
-	if (recorder.isRecording()) {
-		recorder.stop();
+	if (Recorder.isRecording()) {
+		Recorder.stop();
 		record_btn.textContent = "Record Steps";
 	} else {
-		recorder.start();
+		Recorder.start();
 		record_btn.textContent = "Stop Recording";
 	}
-
 }
 
 (function docReady(onReady) {

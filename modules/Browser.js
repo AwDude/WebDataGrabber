@@ -1,7 +1,9 @@
 module.exports = function(iFrame, urlInput) {
 	
+	var preventNavigation = false;
+	
 	function init() {
-		iFrame.addEventListener("load", bindUrlInputToIFrame);
+		onLoad(bindUrlInputToIFrame);
 		redirectNavigationToIFrame();
 		storeUrlOnClose();
 		loadUrlOnEnterPress();
@@ -12,7 +14,9 @@ module.exports = function(iFrame, urlInput) {
 		const win =	nw.Window.get();
 		const onNavigate = function(frame, url, policy) {
 			policy.ignore();
-			iFrame.src = url;
+			if (!preventNavigation) {
+				iFrame.src = url;
+			}
 		};
 		win.on('new-win-policy', onNavigate);
 		win.on('navigation', onNavigate);
@@ -33,6 +37,9 @@ module.exports = function(iFrame, urlInput) {
 	}
 
 	function loadUrl() {
+		if (preventNavigation) {
+			return;
+		}
 		var url = urlInput.value;
 		if (!isHttp(url)) {
 			url = 'https://' + url;
@@ -60,32 +67,55 @@ module.exports = function(iFrame, urlInput) {
 			return;
 		}
 		const win = iFrame.contentWindow;
-		const history = win.history;
-		const nativePushState = history.pushState;
-		const nativeReplaceState = history.replaceState;
+		const nativePushState = win.history.pushState;
+		const nativeReplaceState = win.history.replaceState;
 		
 		win.onpopstate = function(event) {
 			urlInput.value = win.location.href;
 		}
-		history.pushState = function(state) {
-			const nativeResult = nativePushState.apply(history, arguments);
+		win.history.pushState = function(state) {
+			const nativeResult = nativePushState.apply(win.history, arguments);
 			win.onpopstate({state: state});
 			return nativeResult;
 		}
-		history.replaceState = function(state) {
-			const nativeResult = nativeReplaceState.apply(history, arguments);
+		win.history.replaceState = function(state) {
+			const nativeResult = nativeReplaceState.apply(win.history, arguments);
 			win.onpopstate({state: state});
 			return nativeResult;
 		}
 		urlInput.value = win.location.href;
 	}
 	
-	init();
+	function getDocument() {
+		return iFrame.contentDocument || iFrame.contentWindow.document;
+	}
 	
+	function onLoad(callback, callIfAlreadyLoaded = true) {
+		const doc = getDocument();
+		if (doc !== undefined && doc.readyState !== "loading", callIfAlreadyLoaded) {
+			callback();
+		}
+		iFrame.addEventListener("load", callback, true);
+	}
+	
+	init();
 	return {
 		loadUrl: loadUrl,
+		onLoad: onLoad,
+		get window() {
+			return iFrame.contentWindow;
+		},
 		get document() {
-			return iFrame.contentDocument || iFrame.contentWindow.document;
+			return getDocument();
+		},
+		get boundingRect() {
+			return iFrame.getBoundingClientRect();
+		},
+		get preventNavigation() {
+			return preventNavigation;
+		},
+		set preventNavigation(val) {
+			preventNavigation = val;
 		}
 	};
 }
