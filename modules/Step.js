@@ -9,15 +9,11 @@ const liHtml = "	<div class='step'> \
 					
 module.exports = class Step {
 
-	constructor(number, url, tag, path, action, parent = null) {
-		this.number = number;
+	constructor(url, tag, path, action, parent = null) {
 		this.url = url;
 		this.tag = tag;
 		this.path = path;
 		this.action = action;
-		this.parent = parent;
-		this.child = null;
-		this.next = null;
 	}
 	
 	asListItem(nestingCount = 0) {
@@ -28,7 +24,7 @@ module.exports = class Step {
 		const liAction = li.getElementsByClassName("step_action")[0];
 		const liUrl = li.getElementsByClassName("step_url")[0];
 		// TODO
-		liNumber.innerHTML = this.number;
+		liNumber.innerHTML = 1;//this.number;
 		liAction.textContent = this.action;
 		liUrl.textContent = this.url;
 		liUrl.href = this.url;
