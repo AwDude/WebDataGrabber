@@ -1,11 +1,11 @@
-const Script = require("modules/script");
-const Dialog = require("modules/dialog")();
+const Script = require("modules/Script");
+const Dialog = require("modules/Dialog")();
 					
 module.exports = function(Browser, stepList) {
 	
 	var currentScript = null;
 	var clickedElement = null;
-	var preventClick = false;
+	var preventClickPropagation = false;
 	var doRecord = false;
 	var lastHoverElement;
 	var lastHoverElementBorder;
@@ -34,7 +34,7 @@ module.exports = function(Browser, stepList) {
 	}
 	
 	function onClick(event) {
-		if (preventClick) {
+		if (preventClickPropagation) {
 			event.preventDefault();
 			event.stopPropagation();
 		}
@@ -45,27 +45,38 @@ module.exports = function(Browser, stepList) {
 		// !!! use last step Element xpath instead of clicked element
 		const isNewRoot = !Browser.document.body.contains(clickedElement);
 		clickedElement = event.target;
-		const rect = Browser.boundingRect;
+		showSelectActionDialog(event, Browser.boundingRect);
+	}
+	
+	function showSelectActionDialog(event, rect) {
 		const mouseX = event.clientX + rect.left;
 		const mouseY = event.clientY + rect.top;
-		const options = ["Click", "Extract Text", "Repeat Next Steps", "Cancel"];
+		const options = ["Click", "Extract text", "Repeat next steps", "Wait until gone", "Fill in", "Cancel"];
 		const message = "Select Action";
 		Dialog.showSelectDialog(message, options, onActionSelected, mouseX, mouseY);
 	}
 	
 	function onActionSelected(action) {
-		if (action === "Cancel") {
-			clickedElement = null;
-			return;
+		switch (step.action) {
+			case "Click":
+				preventClick(false);
+				emulateClick(clickedElement);
+				preventClick(true);
+				break;
+			case "Extract text":
+				break;
+			case "Repeat Next Steps":
+				break;
+			case "Cancel":
+				clickedElement = null;
+				return;
+			default:
+				console.log("Run aborted: Invalid Step Action!");
+				return;
 		}
 		if (action === "Click") {
-			preventClick = false;
-			Browser.preventNavigation = false;
-			emulateClick(clickedElement);
 		}
 		//currentScript.addStep(clickedElement, action);
-		preventClick = true;
-		Browser.preventNavigation = true;
 	}
 	
 	function onHover(event) {
@@ -81,10 +92,14 @@ module.exports = function(Browser, stepList) {
 		return doRecord;
 	}
 	
+	function preventClick(doPrevent) {
+		preventClickPropagation = doPrevent;
+		Browser.preventNavigation = doPrevent;
+	}
+	
 	function start() {
 		doRecord = true;
-		preventClick = true;
-		Browser.preventNavigation = true;
+		preventClick(true);
 		//currentScript = Script.create(iFrame, stepList);
 		stepList.innerHTML = "";
 		if (Browser.document !== undefined) {
@@ -95,8 +110,7 @@ module.exports = function(Browser, stepList) {
 	
 	function stop() {
 		doRecord = false;
-		preventClick = false;
-		Browser.preventNavigation = false;
+		preventClick(false);
 		if (Browser.document !== undefined) {
 			Browser.document.removeEventListener("click", onClick, true);
 			Browser.document.body.removeEventListener("mouseover", onHover);
