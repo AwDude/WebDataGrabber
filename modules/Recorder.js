@@ -57,7 +57,7 @@ module.exports = function(Browser, stepList) {
 	}
 	
 	function onActionSelected(action) {
-		switch (step.action) {
+		switch (action) {
 			case "Click":
 				preventClick(false);
 				emulateClick(clickedElement);
@@ -65,16 +65,11 @@ module.exports = function(Browser, stepList) {
 				break;
 			case "Extract text":
 				break;
-			case "Repeat Next Steps":
+			case "Repeat next steps":
 				break;
 			case "Cancel":
 				clickedElement = null;
 				return;
-			default:
-				console.log("Run aborted: Invalid Step Action!");
-				return;
-		}
-		if (action === "Click") {
 		}
 		//currentScript.addStep(clickedElement, action);
 	}
@@ -100,7 +95,7 @@ module.exports = function(Browser, stepList) {
 	function start() {
 		doRecord = true;
 		preventClick(true);
-		//currentScript = Script.create(iFrame, stepList);
+		currentScript = Script.create(Browser.url);
 		stepList.innerHTML = "";
 		if (Browser.document !== undefined) {
 			Browser.document.addEventListener("click", onClick, true);

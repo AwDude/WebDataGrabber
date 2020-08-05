@@ -102,6 +102,9 @@ module.exports = function(iFrame, urlInput) {
 	return {
 		loadUrl: loadUrl,
 		onLoad: onLoad,
+		get url() {
+			return iFrame.contentWindow.location.href;
+		},
 		get window() {
 			return iFrame.contentWindow;
 		},
