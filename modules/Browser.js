@@ -92,7 +92,7 @@ module.exports = function(iFrame, urlInput) {
 	
 	function onLoad(callback, callIfAlreadyLoaded = true) {
 		const doc = getDocument();
-		if (doc !== undefined && doc.readyState !== "loading", callIfAlreadyLoaded) {
+		if (doc !== undefined && doc.readyState !== "loading" && callIfAlreadyLoaded) {
 			callback();
 		}
 		iFrame.addEventListener("load", callback, true);

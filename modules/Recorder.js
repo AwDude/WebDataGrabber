@@ -1,5 +1,6 @@
 const Script = require("modules/Script");
 const Dialog = require("modules/Dialog")();
+const Resolver = require("modules/Resolver");
 					
 module.exports = function(Browser, stepList) {
 	
@@ -9,6 +10,7 @@ module.exports = function(Browser, stepList) {
 	var doRecord = false;
 	var lastHoverElement;
 	var lastHoverElementBorder;
+	var userSelectsRepeatElement = false;
 	
 	function init() {
 		Browser.onLoad(onLoaded);
@@ -42,6 +44,11 @@ module.exports = function(Browser, stepList) {
 		if (!event.isTrusted) { 
 			return;
 		}
+		if (userSelectsRepeatElement) {
+			userSelectsRepeatElement = false;
+			Resolver.getLoopSelector(clickedElement, event.target);
+			return;
+		}
 		// !!! use last step Element xpath instead of clicked element
 		const isNewRoot = !Browser.document.body.contains(clickedElement);
 		clickedElement = event.target;
@@ -66,7 +73,9 @@ module.exports = function(Browser, stepList) {
 			case "Extract text":
 				break;
 			case "Repeat next steps":
-				break;
+				// show some info dialog that user has to click a similiar element
+				userSelectsRepeatElement = true;
+				return;
 			case "Cancel":
 				clickedElement = null;
 				return;
